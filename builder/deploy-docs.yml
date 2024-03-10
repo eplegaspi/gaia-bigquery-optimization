@@ -1,0 +1,57 @@
+parameters:
+- name: envCode
+  type: string
+- name: projectPrefix
+  type: string
+- name: app
+  type: string
+- name: gcrConnName
+  type: string
+- name: gcrNamespace
+  type: string
+
+jobs:
+  - deployment: Deploy
+    variables:
+    - group: '${{ parameters.projectPrefix }}-${{ parameters.envCode }}'
+    displayName: '${{ parameters.envCode }} deployment'
+    environment: '${{ parameters.projectPrefix }}-${{ parameters.envCode }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact'
+            inputs:
+              artifactName: chart
+              buildType: current
+              downloadType: single
+              download: '$(System.ArtifactsDirectory)'
+
+          - script: |
+              ls -al $(System.ArtifactsDirectory)/chart
+            displayName: "Build packer and deploy terraform"
+
+          - task: HelmInstaller@0
+            displayName: 'Install Helm Chart'
+            inputs:
+              helmVersion: '3.1.2'
+              installKubectl: true
+
+          - task: HelmDeploy@0
+            displayName: 'Deploy Main to Kubernetes Cluster'
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceConnection: '${{ parameters.gcrConnName }}'
+              namespace: '${{ parameters.gcrNamespace }}'
+              command: 'upgrade'
+              chartType: 'FilePath'
+              chartPath: '$(System.ArtifactsDirectory)/chart/'
+              releaseName: '${{ parameters.projectPrefix }}-${{ parameters.envCode }}-${{ parameters.app }}'
+              failOnStderr: false
+              arguments: >
+                --set timeout=60m0s
+                --install
+                --wait
+
+

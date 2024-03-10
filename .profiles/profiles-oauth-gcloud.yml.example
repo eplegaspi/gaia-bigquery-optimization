@@ -1,0 +1,26 @@
+# Notes :
+# For development purpose
+# Make sure `gcloud` command is activated in the computer
+# installation instruction could be found in https://cloud.google.com/sdk/docs/install 
+# activate application-default account with :
+# `gcloud auth application-default login --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/iam.test`
+
+config:
+  partial_parse: false # true | false
+  use_colors: true # true | false
+  printer_width: 120 # int
+  send_anonymous_usage_stats: false # true | false
+
+mclinica-analytics-bq: # change this to appropriate profile name, add env variable in .env file
+  outputs:
+    dev: # change this to appropriate profile name
+      type: bigquery
+      method: oauth
+      project: <project-name>
+      dataset: <dataset-name>
+      threads: 4
+      timeout_seconds: 300
+      priority: interactive
+      retries: 1
+      location: asia-southeast1 # Optional
+  target: dev

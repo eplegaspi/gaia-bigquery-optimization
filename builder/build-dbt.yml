@@ -1,0 +1,91 @@
+# Starter pipeline
+
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+parameters:
+- name: gcrConnName
+  type: string
+- name: gcrRepoName
+  type: string
+- name: profilename
+  type: string
+- name: projectPrefix
+  type: string
+- name: envCode
+  type: string
+- name: version
+  type: string
+
+jobs:
+  - job:
+    displayName: "Build DBT"
+    variables:
+    - group: '${{ parameters.projectPrefix }}-${{ parameters.envCode }}'
+    steps:
+    - task: DownloadSecureFile@1
+      name: dbtsafile
+      displayName: 'Download Service Account file' 
+      inputs:
+        secureFile: 'mclinica-analytics-dbt-sa.json'
+
+    - script: |
+        echo Set up DBT SA file $(dbtsafile.secureFilePath)
+        sudo chown root:root $(dbtsafile.secureFilePath)
+        sudo chmod a+r $(dbtsafile.secureFilePath)
+        sudo cp -f $(dbtsafile.secureFilePath) .profiles/
+
+    - task: DownloadSecureFile@1
+      name: dbtprofile
+      displayName: 'Download DBT Profile file' 
+      inputs:
+        secureFile: '${{ parameters.profilename }}'
+
+    - script: |
+        echo Set up DBT profile file $(dbtprofile.secureFilePath)
+        sudo chown root:root $(dbtprofile.secureFilePath)
+        sudo chmod a+r $(dbtprofile.secureFilePath)
+        sudo cp -f $(dbtprofile.secureFilePath) .profiles/profiles.yml 
+
+    - task: Docker@2
+      displayName: Build
+      inputs:
+        command: 'build'
+        containerRegistry: '${{ parameters.gcrConnName }}'
+        repository: '${{ parameters.gcrRepoName }}'
+        Dockerfile: '**/docker-image/dbt.dockerfile'
+        buildContext: '$(Build.Repository.LocalPath)'
+        ${{ if eq(parameters.version, 'v1') }}: 
+          tags: |
+            $(Build.BuildNumber)
+            latest
+            $(Build.SourceBranchName)-latest
+            $(Build.SourceBranchName)-$(Build.BuildNumber)
+        ${{ if eq(parameters.version, 'v2') }}: 
+          tags: |
+            v2-$(Build.BuildNumber)
+            $(Build.SourceBranchName)-latest
+            $(Build.SourceBranchName)-$(Build.BuildNumber)
+        arguments: >
+          --build-arg DBT_PROFILES_DIR=.profiles
+
+    - task: Docker@2
+      displayName: Push
+      inputs:
+        command: 'push'
+        containerRegistry: '${{ parameters.gcrConnName }}'
+        repository: '${{ parameters.gcrRepoName }}'
+        Dockerfile: '**/docker-image/dbt.dockerfile'
+        buildContext: '$(Build.Repository.LocalPath)'
+        ${{ if eq(parameters.version, 'v1') }}: 
+          tags: |
+            $(Build.BuildNumber)
+            latest
+            $(Build.SourceBranchName)-latest
+            $(Build.SourceBranchName)-$(Build.BuildNumber)
+        ${{ if eq(parameters.version, 'v2') }}: 
+          tags: |
+            v2-$(Build.BuildNumber)
+            $(Build.SourceBranchName)-latest
+            $(Build.SourceBranchName)-$(Build.BuildNumber)

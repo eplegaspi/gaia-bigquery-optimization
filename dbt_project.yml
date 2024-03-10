@@ -1,0 +1,63 @@
+
+# Name your project! Project names should contain only lowercase characters
+# and underscores. A good package name should reflect your organization's
+# name or the intended use of these models
+name: 'data_analytics_swiperx'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'analytics-dbt-bigquerylogs'
+
+# These configurations specify where dbt should look for different types of files.
+# The `model-paths` config, for example, states that models in this project can be
+# found in the "models/" directory. You probably won't need to change these!
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+
+# Configuring models
+# Full documentation: https://docs.getdbt.com/docs/configuring-models
+
+# In this example config, we tell dbt to build all models in the example/ directory
+# as tables. These settings can be overridden in the individual model files
+# using the `{{ config(...) }}` macro.
+models:
+  data_analytics_swiperx:
+      # Applies to all files under models/example/
+      sources:
+          materialized: table 
+      staging:
+          materialized: table
+      marts:
+          materialized: table
+# vars:
+#     # location of raw data tables gcp-project-name.dataset
+#     # should be provided with .ENV
+#     dbt_user: "{{ env_var('DBT_USER', 'configure-DBT_USER') }}"
+#     swiperx_prod: "{{ env_var('SWIPERX_PROD_DATASET', 'configure-SWIPERX_PROD_DATASET') }}"
+#     swiperx_community_raw_dataset: "{{ env_var('SWIPERX_COMMUNITY_RAW_DATASET', 'configure-SWIPERX_COMMUNITY_RAW_DATASET') }}"
+#     swiperx_pt_raw_dataset: "{{ env_var('SWIPERX_PT_RAW_DATASET', 'configure-SWIPERX_PT_RAW_DATASET') }}"
+#     swiperx_pt_raw_v2_dataset: "{{ env_var('SWIPERX_PT_RAW_V2_DATASET', 'configure-SWIPERX_PT_RAW_V2_DATASET') }}"
+#     swiperx_pt_external_dataset: "{{ env_var('SWIPERX_PT_EXTERNAL_DATASET', 'configure-SWIPERX_PT_EXTERNAL_DATASET') }}"
+#     swiperx_pspp_raw_dataset: "{{ env_var('SWIPERX_PSPP_RAW_DATASET', 'configure-SWIPERX_PSPP_RAW_DATASET') }}"
+#     netsuite_raw_dataset: "{{ env_var('NETSUITE_RAW_DATASET', 'configure-NETSUITE_RAW_DATASET') }}"
+#     open_loyalty_raw_dataset: "{{ env_var('OPEN_LOYALTY_RAW_DATASET', 'configure-OPEN_LOYALTY_RAW_DATASET') }}"
+#     swiperx_cpd_raw_dataset: "{{ env_var('SWIPERX_CPD_RAW_DATASET', 'configure-SWIPERX_CPD_RAW_DATASET') }}"
+#     legacy_stayon_raw_dataset: "{{ env_var('LEGACY_STAYON_RAW_DATASET', 'configure-LEGACY_STAYON_RAW_DATASET') }}"
+#     connect_customer_raw_dataset: "{{ env_var('CONNECT_CUSTOMER_RAW_DATASET', 'configure-CONNECT_CUSTOMER_RAW_DATASET') }}"
+#     connect_messages_raw_dataset: "{{ env_var('CONNECT_MESSAGES_RAW_DATASET', 'configure-CONNECT_MESSAGES_RAW_DATASET') }}"
+#     connect_products_raw_dataset: "{{ env_var('CONNECT_PRODUCTS_RAW_DATASET', 'configure-CONNECT_PRODUCTS_RAW_DATASET') }}"
+#     connect_transaction_raw_dataset: "{{ env_var('CONNECT_TRANSACTION_RAW_DATASET', 'configure-CONNECT_TRANSACTION_RAW_DATASET') }}"
+#     connect_users_raw_dataset: "{{ env_var('CONNECT_USERS_RAW_DATASET', 'configure-CONNECT_USERS_RAW_DATASET') }}"
+#     connect_mypfizer_raw_dataset: "{{ env_var('CONNECT_MYPFIZER_RAW_DATASET', 'configure-CONNECT_MYPFIZER_RAW_DATASET') }}"
+#     swiperx_gsheet_raw_dataset: "{{ env_var('SWIPERX_GSHEET_RAW_DATASET','configure-SWIPERX_GSHEET_RAW_DATASET') }}"

@@ -1,0 +1,24 @@
+pool:
+  name: Default
+
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 * * * *"
+  displayName: "Hourly Schedule"
+  branches:
+    include:
+    - master
+  always: true
+
+stages:
+- stage:
+  displayName: 'DBT Prod Deployment'
+  jobs:
+  - template: 'deploy-dbt.yml'
+    parameters:
+      envCode: 'prod'
+      projectPrefix: 'analytics-dbt'
+      gcrConnName: 'mclinica-analytics-container'
+      gcrRepoName: 'mclinica-analytics/data-analytics-swiperx-dbt-pt:master-latest'

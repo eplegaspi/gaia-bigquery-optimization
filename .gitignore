@@ -1,0 +1,23 @@
+# venv
+.venv
+dbt-env
+
+# IDE files
+.vscode
+.idea
+
+# Env
+.env*
+!.env.example
+
+# DBT specific
+.profiles/*
+!.profiles/*.example
+!.profiles/.gitkeep
+target/
+dbt_modules/
+logs/
+
+.DS_Store
+
+tests

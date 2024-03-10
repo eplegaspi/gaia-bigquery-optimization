@@ -1,0 +1,75 @@
+pool:
+  name: Default
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+    - v2
+
+pr: none
+
+stages:
+- stage: DBT_CI_PIPELINE
+  displayName: 'DBT CI Pipeline'
+  jobs:
+  - template: build-dbt.yml
+    parameters:
+      gcrConnName: 'mclinica-analytics-container'
+      gcrRepoName: 'mclinica-analytics/data-analytics-swiperx-dbt-pt'
+      projectPrefix: 'dbt'
+      ${{if eq(variables['Build.SourceBranch'], 'refs/heads/v2')}}:
+        profilename: 'profiles-pt-prod.yml'
+        envCode: 'prod'
+        version: 'v2'
+      ${{if eq(variables['Build.SourceBranch'], 'refs/heads/master')}}:
+        profilename: 'profiles-prod.yml'
+        envCode: 'prod'
+        version: 'v1'
+      ${{if eq(variables['Build.SourceBranch'], 'refs/heads/develop')}}:
+        profilename: 'profiles-dev.yml'
+        envCode: 'devx'
+        version: 'v1'
+      
+
+# - stage: DBT_DOCS_CI_PIPELINE
+#   displayName: 'DBT Docs CI Pipeline'
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+#   jobs:
+#   - template: build-docs.yml
+#     parameters:
+#       gcrConnName: 'mclinica-analytics-container'
+#       gcrRepoName: 'mclinica-analytics/data-analytics-swiperx-dbt-docs'
+#       projectPrefix: 'dbt-docs'
+#       ${{if eq(variables['Build.SourceBranch'], 'refs/heads/master')}}:
+#         profilename: 'profiles-prod.yml'
+#         envCode: 'prod'
+#       ${{if ne(variables['Build.SourceBranch'], 'refs/heads/master')}}:
+#         profilename: 'profiles-dev.yml'
+#         envCode: 'devx'
+
+- stage: DBT_DEV_DEPLOYMENT
+  dependsOn: DBT_CI_PIPELINE
+  displayName: 'DBT Dev Deployment'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  jobs:
+  - template: 'deploy-dbt.yml'
+    parameters:
+      envCode: 'devx'
+      projectPrefix: 'dbt'
+      gcrConnName: 'mclinica-analytics-container'
+      gcrRepoName: 'mclinica-analytics/data-analytics-swiperx-dbt-pt'
+
+# - stage: DBT_DOCS_DEPLOYMENT
+#   dependsOn: DBT_DOCS_CI_PIPELINE
+#   displayName: 'DBT Docs Deployment'
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+#   jobs:
+#   - template: 'deploy-docs.yml'
+#     parameters:
+#       envCode: 'prod'
+#       projectPrefix: 'dbt-docs'
+#       app: swiperx-pt
+#       gcrConnName: mclinica-analytics-cluster
+#       gcrNamespace: analytics-production
